@@ -13,8 +13,9 @@ gulp.task('watch', function () {
 
 	// Start the LiveReload socket server.
 	liveReloadServer.listen(35729, function (error) {
-		// watch the example usage index.html file.
-		gulp.watch('index.html', function (event) {
+
+		// watch for changes to local js and html.
+		gulp.watch(['index.html', '*.js'], function refresh (event) {
 			gulp.src(event.path, {read:false}).pipe(livereload(liveReloadServer));
 		});
 	});
