@@ -65,11 +65,33 @@
         // Prototype-Level Functions.
         // --------------------------
         Invigorate.prototype.reinvigorate = function reinvigorate () {
-            var self = this;
-            this.promise = new Promise(function (resolve, reject) {
+            var self = this,
+                workers = [],
+                i, l;
+            for (i=0, l=this.setPieces.length; i<l; i++) {
+                workers[workers.length] = GenerateFramesWithWorker({
+                    numberOfFrames: self.numberOfFrames,
+                    keyframes:self.setPieces[i].keyframes
+                });
+            }
 
-                var setPiecesCalculated = 0;
+            this.promise = Promise.all(workers).then(function (framesets) {
+                // set the frames using the data returned by the workers.
+                for (i=0, l=framesets.length; i<l; i++)
+                    self.setPieces[i].frames = framesets[i];
+                return self;
+            });
 
+            return this;
+        };
+
+        // Private Functions.
+        // ------------------
+        function GenerateFramesWithWorker (options) {
+
+            var promise = new Promise(function (resolve, reject) {
+
+                // Define the function that represents the worker (will be stringified).
                 var workerFunction = function () {
                     onmessage = function (messageEvent) {
 
@@ -81,26 +103,53 @@
                         for (var i=0,l=messageEvent.data.numberOfFrames+1; i<l; i++)
                             frames[i] = {};
 
+                        // Get an array of properties that will be modified.
                         var properties = GetProperties(messageEvent.data.keyframes);
 
                         // calculate and populate each frame.
-                        var frame;
+                        var frame, property;
                         for (var i=0, l=frames.length; i<l; i++) {
                             frame = frames[i];
 
-                            if (typeof keyframes[i] !== 'undefined')
-                                console.log(JSON.stringify(keyframes[i]));
+                            // attach properties on this keyframe.
+                            for (var pi=0, pl=properties.length; pi<pl; pi++) {
+                                property = properties[pi];
+
+                                // if property is set on this keyframe...
+                                if (keyframes[i] && typeof keyframes[i][property.name] !== 'undefined') {
+
+                                    // set the property to the defined value.
+                                    frame[property.name] = keyframes[i][property.name];
+
+                                    // transition the frames since the last change.
+                                    if (i !== 0) {
+                                        TransitionFrames(
+                                            frames.slice(property.lastKeyframeIdx, i+1),
+                                            property.name
+                                        );
+                                    }
+
+                                    // replace the 'lastKeyframeIdx' tracker.
+                                    property.lastKeyframeIdx = i;
+                                }
+                                // ...otherwise carry-over the value from the last frame.
+                                else {
+                                    frame[property.name] = frames[i-1][property.name];
+                                }
+                            }
                         }
 
-                        postMessage({idx:messageEvent.data.idx, frames:frames});
+                        postMessage(frames);
                     };
 
-                    // Function Definitions.
-                    // ---------------------
+                    // Private Function Definitions.
+                    // -----------------------------
 
                     // Gets a list of all properties that are animated on this set piece.
                     function GetProperties (keyframes) {
                         var properties = [];
+
+                        // create an array of property names.
                         for (var keyframe in keyframes) {
                             keyframe = keyframes[keyframe];
                             for (var property in keyframe) {
@@ -108,42 +157,71 @@
                                     properties[properties.length] = property;
                             }
                         }
+
+                        // transform property strings into property objects.
+                        for (var i=0,l=properties.length; i<l; i++) {
+                            properties[i] = { name: properties[i] }
+                        }
+
                         return properties;
+                    }
+
+                    // Gets the incrementer value for smoothing between keyframe values.
+                    function TransitionFrames (framesToTransition, propertyName, transitionType) {
+
+                        // determine start and end values.
+                        var endValue = framesToTransition[framesToTransition.length-1][propertyName],
+                            startValue = framesToTransition[0][propertyName];
+
+                        // don't bother looping if the values don't need transitioning.
+                        if (endValue === startValue)
+                            return framesToTransition;
+
+                        // linear transition (default).
+                        if (!transitionType || transitionType === 'linear') {
+                            var increment = ((endValue - startValue) / framesToTransition.length);
+
+                            for (var i=1,l=framesToTransition.length-1; i<l; i++) {
+                                framesToTransition[i][propertyName] += (increment * i);
+                            }
+                        }
+
+                        return framesToTransition;
                     }
                 };
 
-                var stringifiedWorkerFunction = ' ' + workerFunction;
-                stringifiedWorkerFunction = stringifiedWorkerFunction.substring(' function () { '.length);
-                stringifiedWorkerFunction = stringifiedWorkerFunction.slice(0,-1);
+                // Stringify the worker function above and create an inline worker.
+                var frameGeneratingWorker = (function CreateInlineWorker () {
+                    var stringifiedWorkerFunction = ' ' + workerFunction;
+                    stringifiedWorkerFunction = stringifiedWorkerFunction.substring(' function () { '.length);
+                    stringifiedWorkerFunction = stringifiedWorkerFunction.slice(0,-1);
 
-                var inlineWorkerScript = new Blob(
-                    [stringifiedWorkerFunction], 
-                    {type:'application/javascript'}
-                );
-                var frameGeneratingWorker = new Worker(window.URL.createObjectURL(inlineWorkerScript));
-                frameGeneratingWorker.onmessage = handleGeneratedFrames;
+                    var inlineWorkerScript = new Blob(
+                        [stringifiedWorkerFunction], 
+                        {type:'application/javascript'}
+                    );
+                    var blobURL = window.URL.createObjectURL(inlineWorkerScript);
+                    var frameGeneratingWorker = new Worker(blobURL);
 
-                for (var i=0, l=self.setPieces.length; i<l; i++) {
-
-                    // TODO: Conditionally use workers if supported
-                    frameGeneratingWorker.postMessage({
-                        idx:i, 
-                        numberOfFrames: self.numberOfFrames,
-                        keyframes:self.setPieces[i].keyframes
+                    // Add listeners for when the worker is finished.
+                    frameGeneratingWorker.addEventListener('message', function DeliverFrames (message) {
+                        resolve(message.data);
+                        frameGeneratingWorker.removeEventListener('message'. DeliverFrames);
                     });
-                }
+                    frameGeneratingWorker.addEventListener('message', function DestroyBlob() {
+                        window.URL.revokeObjectURL(blobURL);
+                        frameGeneratingWorker.removeEventListener('message', DestroyBlob);
+                    });
 
-                function handleGeneratedFrames (messageEvent) {
-                    console.log(messageEvent.data);
-                    //self.setPieces[message.data.index].frames = message.data.frames;
-                    setPiecesCalculated++;
-                    if (setPiecesCalculated >= self.setPieces.length)
-                        resolve(self);
-                }
+                    return frameGeneratingWorker;
+                })();
+
+                // kick off the worker.
+                frameGeneratingWorker.postMessage(options);
             });
 
-            return this;
-        };
+            return promise;
+        }
 
         // Attach Invigorate to the document for out-of-closure use.
         // ---------------------------------------------------------
@@ -165,8 +243,10 @@
             {
                 element: document.getElementById('move-me-one'),
                 keyframes: {
-                    0: { height: 50 },
-                    500: { height: 200 }
+                    0: { height: 50, opacity: 1 },
+                    99: { opacity: 0.5},
+                    300: { height: 200, opacity: 0.5 },
+                    500: { opacity: 1 }
                 }
             },
             {
