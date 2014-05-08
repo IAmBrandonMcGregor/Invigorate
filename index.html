@@ -11,9 +11,6 @@
     <!-- Meta tag to normalize desktop & mobile viewport behavior. -->
     <meta name="viewport" content="width=device-width, user-scalable=no,maximum-scale=1,initial-scale=1">
 
-    <!-- Include underscore.js TODO: include the needed functions so there's no external dependencies -->
-    <script src="http://underscorejs.org/underscore.js"></script>
-
 </head>
 
 <style>
@@ -92,7 +89,7 @@
                             frame = frames[i];
 
                             if (typeof keyframes[i] !== 'undefined')
-                                console.log("ASDFASDF");
+                                console.log(JSON.stringify(keyframes[i]));
                         }
 
                         postMessage({idx:messageEvent.data.idx, frames:frames});
@@ -119,11 +116,16 @@
                 stringifiedWorkerFunction = stringifiedWorkerFunction.substring(' function () { '.length);
                 stringifiedWorkerFunction = stringifiedWorkerFunction.slice(0,-1);
 
-                var inlineWorkerScript = new Blob([stringifiedWorkerFunction]);
+                var inlineWorkerScript = new Blob(
+                    [stringifiedWorkerFunction], 
+                    {type:'application/javascript'}
+                );
                 var frameGeneratingWorker = new Worker(window.URL.createObjectURL(inlineWorkerScript));
                 frameGeneratingWorker.onmessage = handleGeneratedFrames;
 
                 for (var i=0, l=self.setPieces.length; i<l; i++) {
+
+                    // TODO: Conditionally use workers if supported
                     frameGeneratingWorker.postMessage({
                         idx:i, 
                         numberOfFrames: self.numberOfFrames,
