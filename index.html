@@ -1,0 +1,196 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>InvigorateJS</title>
+
+    <!-- Meta tag to normalize desktop & mobile viewport behavior. -->
+    <meta name="viewport" content="width=device-width, user-scalable=no,maximum-scale=1,initial-scale=1">
+
+    <!-- Include underscore.js TODO: include the needed functions so there's no external dependencies -->
+    <script src="http://underscorejs.org/underscore.js"></script>
+
+</head>
+
+<style>
+    #my-invigorate-wrapper {
+        width: 200%;
+        text-align: center;
+    }
+    #move-me-one {
+        background-color: green;
+    }
+    #move-me-two {
+        background-color: blue;
+    }
+    .wrapper {
+        width: 100%;
+        overflow: auto;
+    }
+</style>
+
+<body>
+    <h1>InvigorateJS</h1>
+    <div class="wrapper">
+        <section id="my-invigorate-wrapper">
+            <span id="move-me-one">Move Me One</span>
+            <span id="move-me-two">Move Me Two</span>
+        </section>
+    </div>
+</body>
+
+<script>
+
+    (function CreateTheInvigorateJSLibrary () {
+
+
+        // Invigorate Constructor.
+        // -----------------------
+        function Invigorate (config) {
+
+            // setup the theater.
+            this.theater = config.theater;
+
+            // setup the setpieces placeholder.
+            this.setPieces = config.setPieces;
+
+            this.numberOfFrames = (config.numberOfFrames || 100);
+
+            this.reinvigorate();
+
+            return this;
+        }
+
+        // Prototype-Level Functions.
+        // --------------------------
+        Invigorate.prototype.reinvigorate = function reinvigorate () {
+            var self = this;
+            this.promise = new Promise(function (resolve, reject) {
+
+                var setPiecesCalculated = 0;
+
+                var workerFunction = function () {
+                    onmessage = function (messageEvent) {
+
+                        // reference the keyframes
+                        var keyframes = messageEvent.data.keyframes;
+
+                        // create an base array of frames.
+                        var frames = [];
+                        for (var i=0,l=messageEvent.data.numberOfFrames+1; i<l; i++)
+                            frames[i] = {};
+
+                        var properties = GetProperties(messageEvent.data.keyframes);
+
+                        // calculate and populate each frame.
+                        var frame;
+                        for (var i=0, l=frames.length; i<l; i++) {
+                            frame = frames[i];
+
+                            if (typeof keyframes[i] !== 'undefined')
+                                console.log("ASDFASDF");
+                        }
+
+                        postMessage({idx:messageEvent.data.idx, frames:frames});
+                    };
+
+                    // Function Definitions.
+                    // ---------------------
+
+                    // Gets a list of all properties that are animated on this set piece.
+                    function GetProperties (keyframes) {
+                        var properties = [];
+                        for (var keyframe in keyframes) {
+                            keyframe = keyframes[keyframe];
+                            for (var property in keyframe) {
+                                if (properties.indexOf(property) === -1)
+                                    properties[properties.length] = property;
+                            }
+                        }
+                        return properties;
+                    }
+                };
+
+                var stringifiedWorkerFunction = ' ' + workerFunction;
+                stringifiedWorkerFunction = stringifiedWorkerFunction.substring(' function () { '.length);
+                stringifiedWorkerFunction = stringifiedWorkerFunction.slice(0,-1);
+
+                var inlineWorkerScript = new Blob([stringifiedWorkerFunction]);
+                var frameGeneratingWorker = new Worker(window.URL.createObjectURL(inlineWorkerScript));
+                frameGeneratingWorker.onmessage = handleGeneratedFrames;
+
+                for (var i=0, l=self.setPieces.length; i<l; i++) {
+                    frameGeneratingWorker.postMessage({
+                        idx:i, 
+                        numberOfFrames: self.numberOfFrames,
+                        keyframes:self.setPieces[i].keyframes
+                    });
+                }
+
+                function handleGeneratedFrames (messageEvent) {
+                    console.log(messageEvent.data);
+                    //self.setPieces[message.data.index].frames = message.data.frames;
+                    setPiecesCalculated++;
+                    if (setPiecesCalculated >= self.setPieces.length)
+                        resolve(self);
+                }
+            });
+
+            return this;
+        };
+
+        // Attach Invigorate to the document for out-of-closure use.
+        // ---------------------------------------------------------
+        this.Invigorate = Invigorate;
+
+    })();
+
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // - - - - - - - - - - - - TEST USAGE! - - - - - - - - - - - - - - -
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+    var myInvigorate = new Invigorate({
+        theater: document.getElementById('my-invigorate-wrapper'),
+        setPieces: [
+            {
+                element: document.getElementById('move-me-one'),
+                keyframes: {
+                    0: { height: 50 },
+                    500: { height: 200 }
+                }
+            },
+            {
+                element: document.getElementById('move-me-two'),
+                keyframes: {
+                    0: { height: 200 },
+                    500: { height: 50 }
+                }
+            }
+        ],
+        // Optional
+        // --------
+        numberOfFrames: 500
+    });
+    
+    myInvigorate.promise.then(function (result) {
+        console.log('Promise worked!');
+        console.log(result);
+        console.log(myInvigorate);
+    });
+
+    // // This would return an object containing functions and a collection of 
+    // // setPieces that have frame collections.
+    // myInvigorateObject.reinvigorate();
+    // myInvigorateObject.setPieces;
+
+</script>
+
+</html>
