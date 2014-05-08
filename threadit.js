@@ -20,44 +20,16 @@
 }(this, function ThreaditFactory(root, Threadit) {
 
 	Threadit = function Threadit (threadFunction, parameterObj) {
+
+
+
 		var promise = new Promise(function ThreaditPromise (resolve, reject) {
-
-			(function StringifyTheThreadFunction () {
-				// convert the function to a string.
-				threadFunction = (' ' + threadFunction);
-
-				// reference the name of the parameter.
-				var paramName = threadFunction.substring(
-					(threadFunction.indexOf('(') + 1),
-					threadFunction.indexOf(')')
-				);
-
-				// replace occurances of the parameter name.
-				threadFunction = threadFunction.split(paramName).join('message.data');
-
-
-				// trim the function down to it's inner logic.
-				var bracketIdx = threadFunction.indexOf('{');
-				threadFunction = threadFunction.substring(bracketIdx);
-
-				// utilize the worker scope.
-				threadFunction = 'onmessage = function (message) ' + threadFunction;
-
-				// replace the first 'return' with the worker message send function.
-				threadFunction = threadFunction.replace('return ', 'postMessage(');
-				var colonIdx = threadFunction.indexOf(';', threadFunction.indexOf('postMessage('));
-				threadFunction = (
-					threadFunction.substring(0,colonIdx)
-					+ ')' 
-					+ threadFunction.substring(colonIdx)
-				);
-			})();
 
 			var worker = (function CreateWorker () {
 
 				// Use the Web API to create a Blob file for the worker script.
 				var inlineWorkerScript = new Blob(
-						[threadFunction],
+						[StringifyFunctionForWorker(threadFunction)],
 						{type: 'application/javascript'}),
 					blobURL = window.URL.createObjectURL(inlineWorkerScript),
 					worker = new Worker(blobURL);
@@ -83,6 +55,41 @@
 
 		return promise;
 	};
+
+	// Private Functions
+	// -----------------
+	function StringifyFunctionForWorker (functionToStringify) {
+		// convert the function to a string.
+		functionToStringify = (' ' + functionToStringify);
+
+		// reference the name of the parameter.
+		var paramName = functionToStringify.substring(
+			(functionToStringify.indexOf('(') + 1),
+			functionToStringify.indexOf(')')
+		);
+
+		// replace occurances of the parameter name.
+		functionToStringify = functionToStringify.split(paramName).join('message.data');
+
+
+		// trim the function down to it's inner logic.
+		var bracketIdx = functionToStringify.indexOf('{');
+		functionToStringify = functionToStringify.substring(bracketIdx);
+
+		// utilize the worker scope.
+		functionToStringify = 'onmessage = function (message) ' + functionToStringify;
+
+		// replace the first 'return' with the worker message send function.
+		functionToStringify = functionToStringify.replace('return ', 'postMessage(');
+		var colonIdx = functionToStringify.indexOf(';', functionToStringify.indexOf('postMessage('));
+		functionToStringify = (
+			functionToStringify.substring(0,colonIdx)
+			+ ')' 
+			+ functionToStringify.substring(colonIdx)
+		);
+
+		return functionToStringify;
+	}
 
 	return Threadit;
 
