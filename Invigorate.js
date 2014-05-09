@@ -44,19 +44,34 @@
 		    workers = [];
 
     for (var i=0, l=this.setPieces.length; i<l; i++) {
+      workers[i] = new Promise(function (resolve, reject) {
 
-  		workers[i] = Threadit(CreateFrames, {
-        numberOfFrames: this.numberOfFrames,
-        keyframes: this.setPieces[i].keyframes
-  		});
+        // Calculate all frame values (fill in between keyframes).
+        Threadit(CreateFrames, {
+          numberOfFrames: self.numberOfFrames,
+          keyframes: self.setPieces[i].keyframes,
+          setPieceIdx: i
+        })
 
-      workers[i].then(function (frames) {
-      	self.setPieces[i].frames = frames;
+        // Turn frame values into css styles.
+        .then(function (framesObj) {
+          return Threadit(RawFramesToHtmlStyles, {
+            frames: framesObj.frames,
+            setPieceIdx: framesObj.setPieceIdx
+          });
+        })
+
+        // Attach the css-style frames to the setpieces.
+        .then(function (framesObj) {
+          self.setPieces[framesObj.setPieceIdx].frames = framesObj.frames;
+          resolve(framesObj.frames);
+        });
+
       });
     }
 
     this.promise = Promise.all(workers).then(function () {
-    	return self;
+    	return self.setPieces;
     });
 
     return this;
@@ -110,7 +125,10 @@
       }
     }
 
-    return frames;
+    return {
+      frames: frames,
+      setPieceIdx: options.setPieceIdx
+    };
 
     // Private Function Definitions.
     // -----------------------------
@@ -160,9 +178,8 @@
   }
 
   function RawFramesToHtmlStyles (options) {
-  	var frames = options.frames;
   	console.log('RawFramesToHtmlStyles');
-  	return frames;
+  	return options;
   }
 
   return Invigorate;
