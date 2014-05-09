@@ -59,38 +59,34 @@
 	// Private Functions
 	// -----------------
 	function StringifyFunctionForWorker (functionToStringify) {
-		// convert the function to a string.
-		functionToStringify = (' ' + functionToStringify);
-
-		// reference the name of the parameter.
-		var paramName = functionToStringify.substring(
-			(functionToStringify.indexOf('(') + 1),
-			functionToStringify.indexOf(')')
-		);
-
-		// replace occurances of the parameter name.
-		functionToStringify = functionToStringify.split(paramName).join('message.data');
-
-
-		// trim the function down to it's inner logic.
-		var bracketIdx = functionToStringify.indexOf('{');
-		functionToStringify = functionToStringify.substring(bracketIdx);
-
-		// utilize the worker scope.
-		functionToStringify = 'onmessage = function (message) ' + functionToStringify;
-
-		// replace the first 'return' with the worker message send function.
-		functionToStringify = functionToStringify.replace('return ', 'postMessage(');
-		var colonIdx = functionToStringify.indexOf(';', functionToStringify.indexOf('postMessage('));
-		functionToStringify = (
-			functionToStringify.substring(0,colonIdx)
-			+ ')' 
-			+ functionToStringify.substring(colonIdx)
-		);
-
-		return functionToStringify;
+		var stringitizedFunk = '\
+			onmessage = function (message) { \
+				postMessage((' + functionToStringify + ')(message.data)); \
+			};';
+		return stringitizedFunk;
 	}
 
 	return Threadit;
 
 }));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
