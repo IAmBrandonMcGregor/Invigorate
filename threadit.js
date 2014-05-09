@@ -2,7 +2,7 @@
 (function AttachThreadit (root, factory) {
 
 	// Setup Threadit appropriately for the environment.
-	
+
 	//Start with AMD.
 	if (typeof define === 'function' && define.amd) {
 		define(['exports'], function (exports) {
@@ -21,18 +21,16 @@
 
 	Threadit = function Threadit (threadFunction, parameterObj) {
 
-
-
 		var promise = new Promise(function ThreaditPromise (resolve, reject) {
 
 			var worker = (function CreateWorker () {
 
 				// Use the Web API to create a Blob file for the worker script.
 				var inlineWorkerScript = new Blob(
-						[StringifyFunctionForWorker(threadFunction)],
-						{type: 'application/javascript'}),
-					blobURL = window.URL.createObjectURL(inlineWorkerScript),
-					worker = new Worker(blobURL);
+  						[StringifyFunctionForWorker(threadFunction)],
+  						{type: 'application/javascript'}),
+  					blobURL = window.URL.createObjectURL(inlineWorkerScript),
+            worker = new Worker(blobURL);
 
 				// Resolve the promise when the worker/thread is finished.
 				worker.addEventListener('message', function ResolvePromise (message) {
