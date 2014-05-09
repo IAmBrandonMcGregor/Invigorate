@@ -30,7 +30,7 @@
     #move-me-two {
         background-color: blue;
     }
-    .wrapper {
+    #wrapper {
         width: 100%;
         overflow: auto;
     }
@@ -38,7 +38,7 @@
 
 <body>
     <h1>InvigorateJS</h1>
-    <div class="wrapper">
+    <div id="wrapper">
         <section id="my-invigorate-wrapper">
             <span id="move-me-one">Move Me One</span>
             <span id="move-me-two">Move Me Two</span>
@@ -50,7 +50,7 @@
 
 
     var myInvigorate = new Invigorate({
-        theater: document.getElementById('my-invigorate-wrapper'),
+        theater: document.getElementById('wrapper'),
         setPieces: [
             {
                 element: document.getElementById('move-me-one'),
@@ -73,13 +73,14 @@
         // --------
         numberOfFrames: 500
     });
-    
+
     myInvigorate.promise.then(function (result) {
         console.log('Promise worked!');
         console.log(result);
+        console.log(myInvigorate);
     });
 
-    // // This would return an object containing functions and a collection of 
+    // // This would return an object containing functions and a collection of
     // // setPieces that have frame collections.
     // myInvigorateObject.reinvigorate();
     // myInvigorateObject.setPieces;
