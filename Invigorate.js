@@ -59,56 +59,42 @@
   	var self = this,
 		    workers = [];
 
-    (function GenerateFrames () {
-      for (var i=0, l=self.setPieces.length; i<l; i++) {
-        workers[i] = new Promise(function (resolve, reject) {
+    // Generate Frames on each set-piece.
+    for (var i=0, l=self.setPieces.length; i<l; i++) {
+      workers[i] = new Promise(function (resolve, reject) {
 
-          // Calculate all frame values (fill in between keyframes).
-          Threadit(CreateFrames, {
-            numberOfFrames: self.numberOfFrames,
-            keyframes: self.setPieces[i].keyframes,
-            setPieceIdx: i
-          })
+        // Calculate all frame values (fill in between keyframes).
+        Threadit(CreateFrames, {
+          numberOfFrames: self.numberOfFrames,
+          keyframes: self.setPieces[i].keyframes,
+          setPieceIdx: i
+        })
 
-          // Turn frame values into css styles.
-          .then(function (framesObj) {
-
-            // Calculate CSS styles if an element is provided for the set-piece...
-            // ...in this case, we assume animating will be handled by Invigorate.
-            if (self.setPieces[framesObj.setPieceIdx].element) {
-              return Threadit(RawFramesToHtmlStyles, {
-                frames: framesObj.frames,
-                setPieceIdx: framesObj.setPieceIdx
-              });
-            }
-            else
-              return framesObj;
-          })
-
-          // Attach the css-style frames to the setpieces.
-          .then(function (framesObj) {
-            // set the DOM scope frames using the values calculated via Threadit.
-            self.setPieces[framesObj.setPieceIdx].frames = framesObj.frames;
-
-            // set the initial styles.
-            self.stylizeElements();
-
-            // this function is finished, so resolve the promise.
-            resolve(framesObj.frames);
+        // Turn frame values into css styles.
+        .then(function (framesObj) {
+          return Threadit(RawFramesToHtmlStyles, {
+            frames: framesObj.frames,
+            setPieceIdx: framesObj.setPieceIdx
           });
+        })
 
+        // Attach the css-style frames to the setpieces.
+        .then(function (framesObj) {
+          // set the DOM scope frames using the values calculated via Threadit.
+          self.setPieces[framesObj.setPieceIdx].frames = framesObj.frames;
+
+          // this function is finished, so resolve the promise.
+          resolve(framesObj.frames);
         });
-      }
-    })();
 
-    (function CacheScrollInfo () {
-      if (self.theater)
-        self.theater.maxScroll =
-          self.theater.scrollWidth - self.theater.clientWidth;
-    })();
+      });
+    }
 
     // Resolve this promise when all of the frames have been created.
     this.promise = Promise.all(workers).then(function () {
+      // set the initial styles.
+      self.stylizeElements();
+      // return the setPieces as the promise handler parameter.
     	return self.setPieces;
     });
 
@@ -121,8 +107,12 @@
     //TODO: Debounce this using rAF.
 
     // Calculate and attach the 'currentFrame' variable.
-    this.currentFrame = Math.floor(
-      this.theater.scrollLeft / this.theater.maxScroll * this.numberOfFrames);
+    this.currentFrame =
+      Math.floor(
+        (this.theater.scrollLeft /
+          (this.theater.scrollWidth - this.theater.clientWidth)
+        )
+       * this.numberOfFrames);
 
     // Dispatch an event.
     this.theater.dispatchEvent(new CustomEvent('frameChanged', {
