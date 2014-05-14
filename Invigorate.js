@@ -48,8 +48,11 @@
         self.stylizeElements.bind(self)();
       });
     }
+
+    // return the newly created Invigorate object.
     return this;
   };
+
 
   // Prototype-Level Functions.
   // ---------------------------------------------------------------------------
@@ -109,10 +112,15 @@
     // Calculate and attach the 'currentFrame' variable.
     this.currentFrame =
       Math.floor(
-        (this.theater.scrollLeft /
-          (this.theater.scrollWidth - this.theater.clientWidth)
+        ( //percentage scrolled
+          this.theater.scrollLeft /
+          ( // maximum scroll value.
+            this.theater.scrollWidth - this.theater.clientWidth
+          )
         )
-       * this.numberOfFrames);
+        *
+        this.numberOfFrames
+      );
 
     // Dispatch an event.
     this.theater.dispatchEvent(new CustomEvent('frameChanged', {
@@ -141,28 +149,26 @@
       console.log('InvigorateJS - ' + message);
   };
 
-  // Private Functions.
-  // ------------------
+
+  // Private Functions (will be worker-itized via Threadit.js).
+  // ---------------------------------------------------------------------------
   function CreateFrames (options) {
 
-    // reference the keyframes
-    var keyframes = options.keyframes;
+    // reference the keyframes, create frames, and find animated properties.
+    var keyframes = options.keyframes,
+        frames = [],
+        properties = GetProperties(options.keyframes)
 
     // create an base array of frames.
-    var frames = [];
     for (var i=0,l=options.numberOfFrames+1; i<l; i++)
       frames[i] = {};
 
-    // Get an array of properties that will be modified.
-    var properties = GetProperties(options.keyframes);
-
     // calculate and populate each frame.
-    var frame, property;
-    for (var i=0, l=frames.length; i<l; i++) {
+    for (var frame, i=0, l=frames.length; i<l; i++) {
       frame = frames[i];
 
       // attach properties on this keyframe.
-      for (var pi=0, pl=properties.length; pi<pl; pi++) {
+      for (var property, pi=0, pl=properties.length; pi<pl; pi++) {
         property = properties[pi];
 
         // TODO: Handle keyframe values set as strings with 'px' or '%'.
