@@ -50,14 +50,14 @@
 
 
     var myInvigorate = new Invigorate({
-        theater: document.getElementById('wrapper'),
+        theater: document.getElementById('wrapper'), //optional -- attaches scroll listener.
         setPieces: [
             {
-                element: document.getElementById('move-me-one'),
+                element: document.getElementById('move-me-one'), //optional -- auto-animates.
                 keyframes: {
                     0: { height: 50, opacity: 1 },
-                    99: { opacity: 0.5},
-                    300: { height: 200, opacity: 0.5 },
+                    99: { opacity: 0.1},
+                    300: { height: 200, opacity: 0.1 },
                     500: { opacity: 1 }
                 }
             },
@@ -69,9 +69,8 @@
                 }
             }
         ],
-        // Optional
-        // --------
-        numberOfFrames: 500
+        numberOfFrames: 500, //optional -- defaults to 100.
+        devMode: true //optional -- provides additional console and UI info.
     });
 
     myInvigorate.promise.then(function (result) {
