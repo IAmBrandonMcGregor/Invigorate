@@ -35,13 +35,19 @@
     // Ensure default configurations are provided where necessary.
     if (!this.numberOfFrames) this.numberOfFrames = 100;
 
+    // Initialize the currentFrame value.
+    this.currentFrame = 0;
+
     // Calculate the frame values.
     this.reinvigorate();
 
     // Attach scroll listeners if a 'theater' element was provided.
-    if (this.theater)
-      this.theater.addEventListener('scroll', this.updateCurrentFrame.bind(this));
-
+    if (this.theater) {
+      this.theater.addEventListener('scroll', function () {
+        self.updateCurrentFrame.bind(self)();
+        self.stylizeElements.bind(self)();
+      });
+    }
     return this;
   };
 
@@ -81,7 +87,13 @@
 
           // Attach the css-style frames to the setpieces.
           .then(function (framesObj) {
+            // set the DOM scope frames using the values calculated via Threadit.
             self.setPieces[framesObj.setPieceIdx].frames = framesObj.frames;
+
+            // set the initial styles.
+            self.stylizeElements();
+
+            // this function is finished, so resolve the promise.
             resolve(framesObj.frames);
           });
 
@@ -119,8 +131,10 @@
 
     // Alert developers of the frame via the console.
     this.log('current frame: ' + this.currentFrame);
+  };
 
-    // Update the styles of any elements associated to a set-piece.
+  // Method to style any elements associated with a set-piece.
+  Invigorate.prototype.stylizeElements = function stylizeElements() {
     for (var setPiece, i=0,l=this.setPieces.length; i<l; i++) {
       setPiece = this.setPieces[i];
       if (setPiece.element) {
