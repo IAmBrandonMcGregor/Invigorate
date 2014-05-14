@@ -40,13 +40,15 @@
 
     // Attach scroll listeners if a 'theater' element was provided.
     if (this.theater)
-      this.theater.addEventListener('scroll', this.scrollHandler);
+      this.theater.addEventListener('scroll', this.updateCurrentFrame.bind(this));
 
     return this;
   };
 
   // Prototype-Level Functions.
-  // --------------------------
+  // ---------------------------------------------------------------------------
+
+  // Function to pre-render & cache styles for each frame.
   Invigorate.prototype.reinvigorate = function reinvigorate () {
   	var self = this,
 		    workers = [];
@@ -100,16 +102,24 @@
 
     return this;
   };
-  Invigorate.prototype.scrollHandler = function scrollHandler(event) {
+
+  // Method to calculate the current frame based on scroll position.
+  Invigorate.prototype.updateCurrentFrame = function updateCurrentFrame() {
 
     //TODO: Debounce this using rAF.
 
-    //TODO: Calculate and attach the 'currentFrame' variable.
+    // Calculate and attach the 'currentFrame' variable.
+    this.currentFrame = Math.floor(
+      this.theater.scrollLeft / this.theater.maxScroll * this.numberOfFrames);
 
-    console.log(event);
-    event.preventDefault();
-    return false;
-  }
+    this.log('current frame: ' + this.currentFrame);
+  };
+
+  // Method to log info only if in dev-mode.
+  Invigorate.prototype.log = function (message) {
+    if (this.devMode)
+      console.log('InvigorateJS - ' + message);
+  };
 
   // Private Functions.
   // ------------------
