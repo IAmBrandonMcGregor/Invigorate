@@ -64,20 +64,20 @@
             setPieceIdx: i
           })
 
-          // // Turn frame values into css styles.
-          // .then(function (framesObj) {
+          // Turn frame values into css styles.
+          .then(function (framesObj) {
 
-          //   // Calculate CSS styles if an element is provided for the set-piece...
-          //   // ...in this case, we assume animating will be handled by Invigorate.
-          //   if (self.setPieces[framesObj.setPieceIdx].element) {
-          //     return Threadit(RawFramesToHtmlStyles, {
-          //       frames: framesObj.frames,
-          //       setPieceIdx: framesObj.setPieceIdx
-          //     });
-          //   }
-          //   else
-          //     return framesObj;
-          // })
+            // Calculate CSS styles if an element is provided for the set-piece...
+            // ...in this case, we assume animating will be handled by Invigorate.
+            if (self.setPieces[framesObj.setPieceIdx].element) {
+              return Threadit(RawFramesToHtmlStyles, {
+                frames: framesObj.frames,
+                setPieceIdx: framesObj.setPieceIdx
+              });
+            }
+            else
+              return framesObj;
+          })
 
           // Attach the css-style frames to the setpieces.
           .then(function (framesObj) {
@@ -112,7 +112,23 @@
     this.currentFrame = Math.floor(
       this.theater.scrollLeft / this.theater.maxScroll * this.numberOfFrames);
 
+    // Dispatch an event.
+    this.theater.dispatchEvent(new CustomEvent('frameChanged', {
+      'currentFrame': this.currentFrame
+    }));
+
+    // Alert developers of the frame via the console.
     this.log('current frame: ' + this.currentFrame);
+
+    // Update the styles of any elements associated to a set-piece.
+    for (var setPiece, i=0,l=this.setPieces.length; i<l; i++) {
+      setPiece = this.setPieces[i];
+      if (setPiece.element) {
+        for (var style in setPiece.frames[this.currentFrame]) {
+          setPiece.element.style[style] = setPiece.frames[this.currentFrame][style];
+        }
+      }
+    }
   };
 
   // Method to log info only if in dev-mode.
@@ -225,38 +241,21 @@
 
   function RawFramesToHtmlStyles (options) {
 
-    // setup some recycled variables.
-    var frame, propertyValue, style;
-
-    // loop through all the frames.
-    for (var i=0, l=options.frames.length; i<l; i++) {
+    for (var frame, i=0, l=options.frames.length; i<l; i++) {
       frame = options.frames[i];
 
-      // reset the style string before we populate it.
-      style = '';
-
-      // loop through all the properties in this frame.
-      for (var property in frame) {
-
-        // convert the properties to be CSS formats.
-        frame[property] = GetCSSFriendlyProperty(property, frame[property]);
-
-        // append this property to the style attribute of this frame.
-        style += (property + ': ' + frame[property] + '; ');
-      }
-
-      // attach the style string to the frame.
-      frame.style = style.slice(0,-1);
+      for (var style in frame)
+        frame[style] = GetCSSFriendlyValue(style, frame[style]);
     }
 
     // PRIVATE FUNCTION(S).
     // --------------------
-    function GetCSSFriendlyProperty (property, value) {
+    function GetCSSFriendlyValue (property, value) {
 
       switch (property) {
         case 'height':
         case 'width':
-          value = value + 'px';
+          value = Math.floor(value) + 'px';
           break;
         default:
           break;
