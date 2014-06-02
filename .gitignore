@@ -11,8 +11,8 @@
 ###################
 app/dist/
 node_modules/
-app/.sass-cache/
-app/styles/*.css
+.sass-cache/
+**/*.css
 
 # Packages #
 ############
