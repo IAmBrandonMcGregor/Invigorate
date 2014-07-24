@@ -5,21 +5,19 @@
 
 	//Start with AMD.
 	if (typeof define === 'function' && define.amd) {
-		define(['exports'], function (exports) {
-			root.Threadit = factory(root, exports);
-		});
+		define([], factory);
 	}
 	// Next for Node.js or CommonJS.
-	else if (typeof exports !== 'undefined') {
-		factory(root, exports);
+	else if (typeof module === 'object' && module.exports) {
+		module.exports = factory();
 	}
 	// finally, as a browser global.
 	else {
-		root.Threadit = factory(root, {});
+		root.Threadit = factory();
 	}
-}(this, function ThreaditFactory(root, Threadit) {
+}(this, function ThreaditFactory() {
 
-	Threadit = function Threadit (threadFunction, parameterObj) {
+	function Threadit (threadFunction, parameterObj) {
 
 		var promise = new Promise(function ThreaditPromise (resolve, reject) {
 

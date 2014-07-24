@@ -5,20 +5,18 @@
 
 	// Start with AMD.
 	if (typeof define === 'function' && define.amd) {
-		define(['exports', 'threadit'], function (exports, threadit) {
-			root.Invigorate = factory(root, exports, threadit);
-		});
+		define(['threadit'], factory);
 	}
 	// Next for Node.js or CommonJS.
-	else if (typeof exports !== 'undefined') {
-		factory(root, exports, require('threadit'));
+	else if (typeof module === 'object' && module.exports) {
+    module.exports = factory(require('threadit'));
 	}
 	// finally, as a browser global.
 	else {
-		root.Invigorate = factory(root, {}, Threadit);
+		root.Invigorate = factory(root.Threadit);
 	}
 
-})(this, function InvigorateFactory(root, Invigorate, Threadit) {
+})(this, function InvigorateFactory(Threadit) {
 
 	// Invigorate Constructor.
   // -----------------------
