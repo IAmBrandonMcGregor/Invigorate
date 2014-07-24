@@ -32,6 +32,8 @@
 
     // Ensure default configurations are provided where necessary.
     if (!this.numberOfFrames) this.numberOfFrames = 100;
+    if (this.autoUpdateCurrentFrame === undefined) this.autoUpdateCurrentFrame = true;
+    if (this.autoUpdateSetpieces === undefined) this.autoUpdateSetpieces = true;
 
     // Initialize the currentFrame value.
     this.currentFrame = 0;
@@ -40,10 +42,19 @@
     this.reinvigorate();
 
     // Attach scroll listeners if a 'theater' element was provided.
-    if (this.theater) {
-      this.theater.addEventListener('scroll', function () {
-        self.updateCurrentFrame.bind(self)();
-        self.stylizeElements.bind(self)();
+    if (this.theater && this.autoUpdateCurrentFrame) {
+      // debounce the scroll event using the rAF api.
+      var debouncing = false;
+      this.theater.addEventListener('scroll', function ScrollDebouncer() {
+        if (!debouncing) {
+          debouncing = true;
+          window.requestAnimationFrame(function ProcessScroll() {
+            self.updateCurrentFrame.bind(self)();
+            if (self.autoUpdateSetpieces)
+              self.stylizeElements.bind(self)();
+            debouncing = false;
+          });
+        }
       });
     }
 
