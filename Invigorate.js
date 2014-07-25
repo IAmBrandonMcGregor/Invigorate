@@ -82,14 +82,6 @@
           setPieceIdx: i
         })
 
-        // Turn frame values into css styles.
-        .then(function (framesObj) {
-          return Threadit(RawFramesToHtmlStyles, {
-            frames: framesObj.frames,
-            setPieceIdx: framesObj.setPieceIdx
-          });
-        })
-
         // Attach the css-style frames to the setpieces.
         .then(function (framesObj) {
           // set the DOM scope frames using the values calculated via Threadit.
@@ -97,6 +89,10 @@
 
           // this function is finished, so resolve the promise.
           resolve(framesObj.frames);
+        },
+        function Error(err) {
+          console.log("There was an issue creating the frames.");
+          console.log(err);
         });
 
       });
@@ -164,7 +160,8 @@
     // reference the keyframes, create frames, and find animated properties.
     var keyframes = options.keyframes,
         frames = [],
-        properties = GetProperties(options.keyframes)
+        properties = GetProperties(options.keyframes),
+        valueFormat;
 
     // create an base array of frames.
     for (var i=0,l=options.numberOfFrames+1; i<l; i++)
@@ -178,10 +175,8 @@
       for (var property, pi=0, pl=properties.length; pi<pl; pi++) {
         property = properties[pi];
 
-        // TODO: Handle keyframe values set as strings with 'px' or '%'.
-
         // if property is set on this keyframe...
-        if (keyframes[i] && typeof keyframes[i][property.name] !== 'undefined') {
+        if (keyframes[i] && keyframes[i][property.name] !== undefined) {
 
           // set the property to the defined value.
           frame[property.name] = keyframes[i][property.name];
@@ -190,7 +185,7 @@
           if (i !== 0) {
             TransitionFrames(
               frames.slice(property.lastKeyframeIdx, i+1),
-              property.name
+              property
             );
           }
 
@@ -214,74 +209,83 @@
 
     // Gets a list of all properties that are animated on this set piece.
     function GetProperties (keyframes) {
-      var properties = [];
+      var foundProperties = [];
 
       // create an array of property names.
       for (var keyframe in keyframes) {
         keyframe = keyframes[keyframe];
-        for (var property in keyframe) {
-          if (properties.indexOf(property) === -1)
-            properties[properties.length] = property;
+        for (var definedProperty in keyframe) {
+
+          // Check to see if we already know that this property is going to be manipulated...
+          var found = false;
+          for (var i=0, l=foundProperties.length; i<l; i++) {
+            if (foundProperties[i].name === definedProperty) {
+              found = true;
+              break;
+            }
+          }
+          // ... if not, we need to add it to the array of properties we know will be invigorated.
+          if (!found) {
+            foundProperties[foundProperties.length] = {
+              name: definedProperty,
+              unitOfMeasure: FindUnitOfMeasure(keyframe[definedProperty])
+            }
+          }
+
+          function FindUnitOfMeasure (definedValue) {
+            if (typeof definedValue == 'number')
+              return 'raw';
+            else if (definedValue.indexOf('%') > -1)
+              return 'percent';
+            else if (definedValue.indexOf('px') > -1)
+              return 'pixel';
+            else
+              return undefined;
+          }
         }
       }
 
-      // transform property strings into property objects.
-      for (var i=0,l=properties.length; i<l; i++) {
-        properties[i] = { name: properties[i] }
-      }
-
-      return properties;
+      return foundProperties;
     }
 
     // Gets the incrementer value for smoothing between keyframe values.
-    function TransitionFrames (framesToTransition, propertyName, transitionType) {
+    function TransitionFrames (framesToTransition, property, transitionType) {
 
       // determine start and end values.
-      var endValue = framesToTransition[framesToTransition.length-1][propertyName],
-          startValue = framesToTransition[0][propertyName];
+      var endValue = framesToTransition[framesToTransition.length-1][property.name],
+          startValue = framesToTransition[0][property.name],
+          uOfMEnding = 'px';
+
+      // parse out the number if necessary
+      if (property.name === 'opacity')
+        uOfMEnding = '';
+      else if (property.unitOfMeasure !== 'raw') {
+        endValue = parseFloat(endValue);
+        startValue = parseFloat(startValue);
+        if (propert.unitOfMeasure === 'percent')
+          uOfMEnding = '%';
+      }
 
       // don't bother looping if the values don't need transitioning.
       if (endValue === startValue) return framesToTransition;
 
       // linear transition (default).
       if (!transitionType || transitionType === 'linear') {
-        var increment = ((endValue - startValue) / framesToTransition.length);
+        var increment = ((endValue - startValue) / framesToTransition.length)
 
-        for (var i=1,l=framesToTransition.length-1; i<l; i++) {
-          framesToTransition[i][propertyName] += (increment * i);
-        }
+        for (var i=1,l=framesToTransition.length-1; i<l; i++)
+          framesToTransition[i][property.name] =
+              parseFloat(framesToTransition[i][property.name])
+            + (increment * i)
+            + uOfMEnding;
+
+        // also add the increment to the first and last
+        framesToTransition[0][property.name] += uOfMEnding;
+        framesToTransition[framesToTransition.length-1][property.name] += uOfMEnding;
       }
 
       return framesToTransition;
     }
-  }
-
-  function RawFramesToHtmlStyles (options) {
-
-    for (var frame, i=0, l=options.frames.length; i<l; i++) {
-      frame = options.frames[i];
-
-      for (var style in frame)
-        frame[style] = GetCSSFriendlyValue(style, frame[style]);
-    }
-
-    // PRIVATE FUNCTION(S).
-    // --------------------
-    function GetCSSFriendlyValue (property, value) {
-
-      switch (property) {
-        case 'height':
-        case 'width':
-          value = Math.floor(value) + 'px';
-          break;
-        default:
-          break;
-      }
-
-      return value;
-    }
-
-  	return options;
   }
 
   return Invigorate;
