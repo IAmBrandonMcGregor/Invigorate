@@ -262,7 +262,7 @@
       else if (property.unitOfMeasure !== 'raw') {
         endValue = parseFloat(endValue);
         startValue = parseFloat(startValue);
-        if (propert.unitOfMeasure === 'percent')
+        if (property.unitOfMeasure === 'percent')
           uOfMEnding = '%';
       }
 
