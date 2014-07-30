@@ -1,26 +1,26 @@
 
 (function AttachInvigorate (root, factory) {
 
-	// Setup Invigorate appropriately for the environment.
+  // Setup Invigorate appropriately for the environment.
 
-	// Start with AMD.
-	if (typeof define === 'function' && define.amd) {
-		define(['threadit'], factory);
-	}
-	// Next for Node.js or CommonJS.
-	else if (typeof module === 'object' && module.exports) {
+  // Start with AMD.
+  if (typeof define === 'function' && define.amd) {
+    define(['threadit'], factory);
+  }
+  // Next for Node.js or CommonJS.
+  else if (typeof module === 'object' && module.exports) {
     module.exports = factory(require('threadit'));
-	}
-	// finally, as a browser global.
-	else {
-		root.Invigorate = factory(root.Threadit);
-	}
+  }
+  // finally, as a browser global.
+  else {
+    root.Invigorate = factory(root.Threadit);
+  }
 
 })(this, function InvigorateFactory(Threadit) {
 
-	// Invigorate Constructor.
+  // Invigorate Constructor.
   // -----------------------
-	Invigorate = function Invigorate (config) {
+  Invigorate = function Invigorate (config) {
 
     // cache a reference to the current scope.
     var self = this;
@@ -63,13 +63,14 @@
   };
 
 
-  // Prototype-Level Functions.
+  // Prototype-Level Functions and Properties.
   // ---------------------------------------------------------------------------
+  Invigorate.prototype.transformProperties = ['scale', 'x', 'y', 'rotate'];
 
   // Function to pre-render & cache styles for each frame.
   Invigorate.prototype.reinvigorate = function reinvigorate () {
-  	var self = this,
-		    workers = [];
+    var self = this,
+        workers = [];
 
     // Generate Frames on each set-piece.
     for (var i=0, l=self.setPieces.length; i<l; i++) {
@@ -79,7 +80,8 @@
         Threadit(CreateFrames, {
           numberOfFrames: self.numberOfFrames,
           keyframes: self.setPieces[i].keyframes,
-          setPieceIdx: i
+          setPieceIdx: i,
+          transformProperties: self.transformProperties
         })
 
         // Attach the css-style frames to the setpieces.
@@ -103,7 +105,7 @@
       // set the initial styles.
       self.stylizeElements();
       // return the setPieces as the promise handler parameter.
-    	return self.setPieces;
+      return self.setPieces;
     });
 
     return this;
@@ -140,7 +142,8 @@
       setPiece = this.setPieces[i];
       if (setPiece.element) {
         for (var style in setPiece.frames[this.currentFrame]) {
-          setPiece.element.style[style] = setPiece.frames[this.currentFrame][style];
+          if (this.transformProperties.indexOf(style) === -1)
+            setPiece.element.style[style] = setPiece.frames[this.currentFrame][style];
         }
       }
     }
@@ -161,6 +164,11 @@
     var keyframes = options.keyframes,
         frames = [],
         properties = GetProperties(options.keyframes),
+        hasTransformProperties = (function () {
+          for (var i=0, l=properties.length; i<l; i++)
+            if (options.transformProperties.indexOf(properties[i].name) !== -1) return true;
+          return false;
+        })(),
         valueFormat;
 
     // create an base array of frames.
@@ -195,6 +203,26 @@
         // ...otherwise carry-over the value from the last frame.
         else {
           frame[property.name] = frames[i-1][property.name];
+        }
+      }
+    }
+
+    // Create a CSS-transform compatible 'transform' property.
+    if (hasTransformProperties) {
+      var css = {
+        scale: 'scale',
+        x: 'translateX',
+        y: 'translateY',
+        rotate: 'rotate'
+      };
+      // Loop through all of the frames and create a 'transform' value.
+      for (var frame, i=0, l=frames.length; i<l; i++) {
+        frame = frames[i];
+        frame.transform = '';
+        for (var transformProperty, j=0, m=options.transformProperties.length; j<m; j++) {
+          transformProperty = options.transformProperties[j];
+          if (frame[transformProperty] !== undefined)
+            frame.transform += (' '+css[transformProperty]+'('+frame[transformProperty]+')');
         }
       }
     }
@@ -239,6 +267,8 @@
               return 'percent';
             else if (definedValue.indexOf('px') > -1)
               return 'pixel';
+            else if (definedValue.indexOf('deg') > -1)
+              return 'degree';
             else
               return undefined;
           }
@@ -257,13 +287,17 @@
           uOfMEnding = 'px';
 
       // parse out the number if necessary
-      if (property.name === 'opacity')
+      if (property.name === 'opacity' || property.name === 'scale')
         uOfMEnding = '';
+      else if (property.name === 'rotate')
+        uOfMEnding = 'deg';
       else if (property.unitOfMeasure !== 'raw') {
         endValue = parseFloat(endValue);
         startValue = parseFloat(startValue);
         if (property.unitOfMeasure === 'percent')
           uOfMEnding = '%';
+        else if (property.unitOfMeasure === 'degree')
+          uOfMEnding = 'deg';
       }
 
       // don't bother looping if the values don't need transitioning.
@@ -273,11 +307,12 @@
       if (!transitionType || transitionType === 'linear') {
         var increment = ((endValue - startValue) / framesToTransition.length)
 
-        for (var i=1,l=framesToTransition.length-1; i<l; i++)
+        for (var i=1,l=framesToTransition.length-1; i<l; i++) {
           framesToTransition[i][property.name] =
               parseFloat(framesToTransition[i][property.name])
             + (increment * i)
             + uOfMEnding;
+        }
 
         // also add the increment to the first and last
         framesToTransition[0][property.name] += uOfMEnding;
