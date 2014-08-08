@@ -41,21 +41,25 @@
     // Calculate the frame values.
     this.reinvigorate();
 
+    // Attach the 'raze' function with a reference to self.
+    this.raze = this.raze.bind(this);
+
     // Attach scroll listeners if a 'theater' element was provided.
     if (this.theater && this.autoUpdateCurrentFrame) {
       // debounce the scroll event using the rAF api.
       var debouncing = false;
-      this.theater.addEventListener('scroll', function ScrollDebouncer() {
+      this.ScrollDebouncer = function ScrollDebouncer() {
         if (!debouncing) {
           debouncing = true;
-          window.requestAnimationFrame(function ProcessScroll() {
+          this.rafId = window.requestAnimationFrame(function ProcessScroll() {
             self.updateCurrentFrame.bind(self)();
             if (self.autoUpdateSetpieces)
               self.stylizeElements.bind(self)();
             debouncing = false;
           });
         }
-      });
+      };
+      this.theater.addEventListener('scroll', this.ScrollDebouncer);
     }
 
     // return the newly created Invigorate object.
@@ -140,13 +144,21 @@
   Invigorate.prototype.stylizeElements = function stylizeElements() {
     for (var setPiece, i=0,l=this.setPieces.length; i<l; i++) {
       setPiece = this.setPieces[i];
-      if (setPiece.element) {
+      if (setPiece.element && setPiece.frames) {
         for (var style in setPiece.frames[this.currentFrame]) {
           if (this.transformProperties.indexOf(style) === -1)
             setPiece.element.style[style] = setPiece.frames[this.currentFrame][style];
         }
       }
     }
+  };
+
+  // Method to destroy this instance and remove all event listeners.
+  Invigorate.prototype.raze = function () {
+    window.cancelAnimationFrame(this.rafId);
+    this.theater.removeEventListener('scroll', this.ScrollDebouncer);
+    delete this.setPieces;
+    this.log("Razed to the ground.");
   };
 
   // Method to log info only if in dev-mode.
