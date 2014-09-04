@@ -46,6 +46,12 @@
 
     // Attach scroll listeners if a 'theater' element was provided.
     if (this.theater && this.autoUpdateCurrentFrame) {
+
+      // detect which direction scroll will happen.
+      this.scrollAxis = (0 >= this.theater.scrollWidth - this.theater.clientWidth)
+        ? 'Y'
+        : 'X';
+
       // debounce the scroll event using the rAF api.
       var debouncing = false;
       this.ScrollDebouncer = function ScrollDebouncer() {
@@ -119,17 +125,32 @@
   Invigorate.prototype.updateCurrentFrame = function updateCurrentFrame() {
 
     // Calculate and attach the 'currentFrame' variable.
-    this.currentFrame =
-      Math.floor(
-        ( //percentage scrolled
-          this.theater.scrollLeft /
-          ( // maximum scroll value.
-            this.theater.scrollWidth - this.theater.clientWidth
+    if (this.scrollAxis === 'X') {
+      this.currentFrame =
+        Math.floor(
+          ( //percentage scrolled
+            this.theater.scrollLeft /
+            ( // maximum scroll value.
+              this.theater.scrollWidth - this.theater.clientWidth
+            )
           )
-        )
-        *
-        this.numberOfFrames
-      );
+          *
+          this.numberOfFrames
+        );
+    }
+    else {
+      this.currentFrame =
+        Math.floor(
+          ( //percentage scrolled
+            this.theater.scrollTop /
+            ( // maximum scroll value.
+              this.theater.scrollHeight - this.theater.clientHeight
+            )
+          )
+          *
+          this.numberOfFrames
+        );
+    }
 
     // Dispatch an event.
     this.theater.dispatchEvent(new CustomEvent('frameChanged', {
