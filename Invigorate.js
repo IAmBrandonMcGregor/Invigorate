@@ -272,6 +272,21 @@
     function GetProperties (keyframes) {
       var foundProperties = [];
 
+
+
+      function FindUnitOfMeasure (definedValue) {
+        if (typeof definedValue == 'number')
+          return 'raw';
+        else if (definedValue.indexOf('%') > -1)
+          return 'percent';
+        else if (definedValue.indexOf('px') > -1)
+          return 'pixel';
+        else if (definedValue.indexOf('deg') > -1)
+          return 'degree';
+        else
+          return undefined;
+      }
+
       // create an array of property names.
       for (var keyframe in keyframes) {
         keyframe = keyframes[keyframe];
@@ -291,19 +306,6 @@
               name: definedProperty,
               unitOfMeasure: FindUnitOfMeasure(keyframe[definedProperty])
             }
-          }
-
-          function FindUnitOfMeasure (definedValue) {
-            if (typeof definedValue == 'number')
-              return 'raw';
-            else if (definedValue.indexOf('%') > -1)
-              return 'percent';
-            else if (definedValue.indexOf('px') > -1)
-              return 'pixel';
-            else if (definedValue.indexOf('deg') > -1)
-              return 'degree';
-            else
-              return undefined;
           }
         }
       }
@@ -338,7 +340,7 @@
 
       // linear transition (default).
       if (!transitionType || transitionType === 'linear') {
-        var increment = ((endValue - startValue) / framesToTransition.length)
+        var increment = ((endValue - parseFloat(startValue)) / framesToTransition.length)
 
         for (var i=1,l=framesToTransition.length-1; i<l; i++) {
           framesToTransition[i][property.name] =
