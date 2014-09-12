@@ -1,1 +1,220 @@
-My GitHub Page
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Invigorate Example</title>
+    <style>
+    .row {
+      max-width: 100%; }
+
+    html, body, #App {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      margin: 0;
+      padding: 0; }
+      html.uninitialized #App, body.uninitialized #App, #App.uninitialized #App {
+        height: 0;
+        overflow: hidden; }
+
+    .fullscreen-section, .scroll-wrapper, .scroll-inner {
+      display: block;
+      overflow: auto;
+      width: 100%;
+      height: 100%; }
+
+    .fullscreen-section {
+      position: relative; }
+      .fullscreen-section .title, .fullscreen-section .subtitle {
+        color: inherit; }
+      .fullscreen-section .scroll-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0; }
+
+    .intro.fullscreen-section {
+      overflow: hidden;
+      text-align: center;
+      background-color: #07F29C;
+      display: table; }
+      .intro.fullscreen-section .intro-wrapper, .intro.fullscreen-section .motor-wrapper {
+        display: table-row;
+        height: auto; }
+      .intro.fullscreen-section .motor-wrapper {
+        height: 100%; }
+      .intro.fullscreen-section .title, .intro.fullscreen-section .subtitle {
+        color: #025E73; }
+      .intro.fullscreen-section .scroll-inner {
+        height: 300%; }
+      .intro.fullscreen-section #InlineMotor {
+        shape-rendering: optimizeSpeed; }
+        .intro.fullscreen-section #InlineMotor path, .intro.fullscreen-section #InlineMotor rect {
+          stroke: #049DBF;
+          fill: #025E73;
+          stroke-width: 1; }
+        .intro.fullscreen-section #InlineMotor #crankshaft {
+          transform-origin: 51.75% 50%;
+          -moz-transform-origin: 51.75% 50%; }
+        .intro.fullscreen-section #InlineMotor #rod {
+          transform-origin: 0% 0%;
+          -moz-transform-origin: 0% 0%; }
+
+    .why-make-this.fullscreen-section {
+      text-align: center;
+      background-color: #037368;
+      color: #07F29C; }
+      .why-make-this.fullscreen-section .subtitle {
+        margin: 80px 20px 0px;
+        font-weight: normal; }
+
+    </style>
+  </head>
+  <body class="">
+    <div id="App">
+
+      <section class="fullscreen-section intro">
+
+        <div class="intro-wrapper">
+          <h1 class="title">This is InvigorateJS</h1>
+          <h1 class="title">It is a library for tying animations to scroll position.</h1>
+          <h3 class="subtitle">You've seen something similar before on parallax scrolling websites.</h3>
+        </div>
+        <div class="motor-wrapper">
+          <svg width="100%" height="100%" viewBox="0 0 250 200">
+            <g id="InlineMotor" transform="translate(-60,-67)">
+                  <path class="engine-block" d="M 166.125,78.96875 L 166.125,90 L 150,90 L 150,95 L 166.125,95 L 166.125,97.28125 L 149.875,97.28125 L 149.875,102.28125 L 166.125,102.28125 L 166.125,105 L 150,105 L 150,110 L 166.125,110 L 166.125,112.5 L 149.9375,112.5 L 149.9375,117.5 L 166.125,117.5 L 166.125,119.78125 L 149.84375,119.78125 L 149.84375,124.78125 L 166.125,124.78125 L 166.125,127.5 L 149.9375,127.5 L 149.9375,132.5 L 166.125,132.5 L 166.125,169.96875 L 153.8125,169.96875 C 153.8125,169.96875 146.83465,241.56461 165,258 C 170.94793,263.38148 206.78006,265.28512 212.72735,257.85447 C 229.15256,237.33249 223.6875,169.96875 223.6875,169.96875 L 210.90625,169.84375 L 210.90625,132.5 L 224.9375,132.5 L 224.9375,127.5 L 210.90625,127.5 L 210.90625,124.78125 L 224.84375,124.78125 L 224.84375,119.78125 L 210.90625,119.78125 L 210.90625,117.5 L 224.9375,117.5 L 224.9375,112.5 L 210.90625,112.5 L 210.90625,110 L 225,110 L 225,105 L 210.90625,105 L 210.90625,102.28125 L 224.875,102.28125 L 224.875,97.28125 L 210.90625,97.28125 L 210.90625,95 L 225,95 L 225,90 L 210.90625,90 L 210.90625,78.96875 L 166.125,78.96875 z M 172.03125,96.125 L 172.03125,175 L 161.75,175 L 161.625,221.96875 C 161.54875,222.80267 161.5,223.64631 161.5,224.5 C 161.5,239.68 173.82,252 189,252 C 204.18,252 216.5,239.68 216.5,224.5 C 216.5,224.41571 216.50076,224.33411 216.5,224.25 L 216.625,224.25 L 216.75,175 L 204.03125,175 L 204.03125,96.125 L 172.03125,96.125 z">
+                  </path>
+                <g id="g4903">
+                  <g id="piston-assembly">
+                    <g style="display:inline" id="rod">
+                      <g>
+                        <path class="crank-pin" d="M 196.35165,214.51554 L 190.14231,215.45655 L 188.93364,207.48103 L 192.80153,206.89486 M 207.00488,204.67916 L 210.96101,204.07962 L 212.17905,212.11693 L 206.11754,213.03554">
+                        </path>
+                        <rect class="crank-pin-bolt" width="2.051579" height="1.5605823" x="156.29648" y="232.02979"
+                           transform="matrix(0.9887107,-0.1498368,0.1498368,0.9887107,0,0)" />
+                        <rect class="crank-pin-bolt" width="2.051579" height="1.5605823" x="175.41087" y="231.9612"
+                           transform="matrix(0.9887107,-0.1498368,0.1498368,0.9887107,0,0)" />
+                        <rect class="crank-pin-bolt" width="2.051579" height="1.5605823" x="156.25995" y="241.34242"
+                           transform="matrix(0.9887107,-0.1498368,0.1498368,0.9887107,0,0)" />
+                        <rect class="crank-pin-bolt" width="2.051579" height="1.5605823" x="175.37434" y="241.27383"
+                           transform="matrix(0.9887107,-0.1498368,0.1498368,0.9887107,0,0)" />
+                      </g>
+                      <g transform="matrix(1.0032681,0,0,0.9989944,105.76444,33.638105)">
+                        <path d="M 101.632,175.76636 C 101.68609,162.4386 92.798146,139.22727 91.08458,128.01601 C 89.371015,116.80475 87.151337,91.88241 87.151337,91.88241 L 76.992186,93.422006 C 76.992186,93.422006 82.306468,116.39076 84.011695,127.56822 C 85.716923,138.74568 83.473555,164.06082 87.428589,177.72026">
+                        </path>
+                      </g>
+                    </g>
+                    <g style="display:inline" id="g4885" transform="translate(106.05635,39.499998)">
+                      <g id="g4851">
+                        <g id="g4871">
+                          <path d="M 66.970284,65.09285 C 67,63 96.901253,63.185738 96.861313,65.09285 C 96.823223,66.911612 96.861313,105 96.861313,105 C 96.861313,105 86.483654,102 82,102 C 77.516346,102 66.970284,105 66.970284,105 C 66.970284,105 66.940568,67.1857 66.970284,65.09285 z">
+                          </path>
+                          <path transform="translate(-3.143506,11.146971)" d="M 90,80 A 5,5 0 1 1 80,80 A 5,5 0 1 1 90,80 z">
+                          </path>
+                          <path d="M 67.016457,68.391457 L 96.867468,68.391457 L 96.867468,71.108539 L 67.016457,71.108539 L 67.016457,68.391457 z">
+                          </path>
+                          <path d="M 67,75.875 L 97,75.875">
+                          </path>
+                          <path transform="translate(-1.1875,0.125)" d="M 85.828427,91 A 2.8284271,2.8284271 0 1 1 80.171573,91 A 2.8284271,2.8284271 0 1 1 85.828427,91 z">
+                          </path>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                  <g id="crankshaft">
+                    <g transform="matrix(0.4032649,0.9150833,-0.9150833,0.4032649,316.36759,-38.124462)" >
+                      <g id="g4858">
+                        <path d="M 188.75,199.1875 C 183.54147,199.1875 179.3125,206.42092 179.3125,215.34375 C 179.3125,215.90143 179.34277,216.45681 179.375,217 C 178.13828,218.83045 177.40625,221.03133 177.40625,223.40625 C 177.40625,224.514 177.58161,225.58013 177.875,226.59375 L 166.125,230.28125 C 168.43407,237.46973 173.45291,242.6699 180.59375,245.3125 C 192.98593,249.89845 206.80211,243.66624 211.4375,231.40625 L 199.875,226.71875 C 200.26846,225.56072 200.34375,224.69677 200.34375,223.40625 C 200.34375,220.88658 199.50283,218.58006 198.125,216.6875 C 198.14633,216.24427 198.1875,215.79635 198.1875,215.34375 C 198.1875,206.42092 193.95853,199.18751 188.75,199.1875 z">
+                        </path>
+                        <path d="M 198.12281,226.5614 A 6.5614038,6.5614038 0 1 1 185,226.5614 A 6.5614038,6.5614038 0 1 1 198.12281,226.5614 z"
+                           transform="translate(-2.6220616,-3.1228051)">
+                           </path>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+
+
+        <!-- This provides a scroll "timeline" -->
+        <div class="scroll-wrapper"> <div class="scroll-inner"></div> </div>
+      </section>
+
+      <section class="fullscreen-section why-make-this">
+        <h1 class="title">What's different about Invigorate?</h1>
+        <h3 class="subtitle">
+            Invigorate utilizes multi-threading to precompile the intermediate states of all animations. This means that while the user scrolls, the JS Engine only has to perform array lookups rather than runtime computation to determine where all of the animation states are.
+        </h3>
+        <h3 class="subtitle">
+            Invigorate provides a declarative syntax that's easy to read and write animations using keyframes. Anyone who's used a video editing software should be familiar with this concept. Invigorate creates a timeline out of your scrollbar and then allows you to define keyframes for each of your animations and smooths them linearly.
+        </h3>
+        <h3 class="subtitle">
+            Leveraging precompilation in tandem with the requestAnimationFrame API, the main DOM thread is left to focus solely on rendering your content and animations.
+        </h3>
+      </section>
+
+    </div>
+  </body>
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="https://raw.githubusercontent.com/IAmBrandonMcGregor/Invigorate/master/threadit.js"></script>
+  <script src="https://raw.githubusercontent.com/IAmBrandonMcGregor/Invigorate/master/Invigorate.js"></script>
+  <script>
+
+    var threeOclockY = 17,
+        threeOoclockR = -2,
+        sixOclockY = 32,
+        sixOclockR = 8,
+        nineOclockY = 16,
+        nineOclockR = 20,
+        twelveOclockY = -2,
+        twelveOclockR = 8.5
+
+    var introVigor = new Invigorate({
+      theater: document.body.querySelector('.intro.fullscreen-section .scroll-wrapper'),
+      numberOfFrames: 200,
+      devMode: true,
+      setPieces: [
+        {
+          element: document.getElementById('crankshaft'),
+          keyframes: {
+            0: {rotate:0},
+            200: {rotate:720}
+          }
+        },
+        {
+          element: document.getElementById('piston-assembly'),
+          keyframes: {
+            0: {y:10},
+            6: {y:threeOclockY},
+            32: {y:sixOclockY},
+            57: {y:nineOclockY},
+            82: {y:twelveOclockY},
+            108: {y:threeOclockY},
+            132: {y:sixOclockY},
+            158: {y:nineOclockY},
+            182: {y:twelveOclockY},
+            200: {y:10}
+          }
+        },
+        {
+          element: document.getElementById('rod'),
+          keyframes: {
+            0: {rotate:0},
+            6: {rotate:threeOoclockR},
+            32: {rotate:sixOclockR},
+            57: {rotate:nineOclockR},
+            82: {rotate:twelveOclockR},
+            108: {rotate:threeOoclockR},
+            132: {rotate:sixOclockR},
+            158: {rotate:nineOclockR},
+            182: {rotate:twelveOclockR},
+            200: {rotate:0}
+          }
+        }
+      ]
+    });
+  </script>
+</html>
