@@ -12,13 +12,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no,maximum-scale=1,initial-scale=1">
 
     <!-- Include CSS -->
-    <link rel="stylesheet" type="text/css" href="example.min.css">
-
-    <!-- Include Threadit.js -->
-    <script src="../threadit.js"></script>
-
-    <!-- Include Invigorate.js -->
-    <script src="../Invigorate.js"></script>
+    <!-- <link rel="stylesheet" type="text/css" href="example.min.css"> -->
 
 </head>
 
@@ -38,7 +32,6 @@
     #wrapper {
         width: 100%;
         overflow: auto;
-        display: none;
     }
 </style>
 
@@ -51,6 +44,14 @@
         </section>
     </div>
 </body>
+
+
+
+<!-- Include Threadit.js -->
+<script src="../threadit.js"></script>
+
+<!-- Include Invigorate.js -->
+<script src="../Invigorate.js"></script>
 
 <script>
 
@@ -81,6 +82,21 @@
     myInvigorate.promise.then(function (result) {
         document.getElementById('wrapper').style.display = 'block';
     });
+
+    (function TestingNewThreaditSyntax() {
+        window.console.log("About to test the new Threadit syntax!");
+
+        var externalFunction = new Threadit(function (p1, p2, p3) {
+            console.log("p1 = " + p1);
+            console.log("p2 = " + p2);
+            console.log("p3 = " + p3);
+            return "yep yep yep";
+        });
+
+        externalFunction("firsttime", 99, false);
+
+        externalFunction("secondTime", 100, true);
+    })();
 
     // // This would return an object containing functions and a collection of
     // // setPieces that have frame collections.

@@ -19,46 +19,75 @@
 
 	function Threadit (threadFunction, parameterObj) {
 
-		var promise = new Promise(function ThreaditPromise (resolve, reject) {
+    // Create an external web-worker from the provided function.
+    var jsURL = CreateExternalJavascriptBlob(threadFunction);
+    var worker = new Worker(jsURL);
 
-			var worker = (function CreateWorker () {
+    // Create a functoin (this thread) that runs the new external-worker.
+    var threadedFunction = function () {
 
-				// Use the Web API to create a Blob file for the worker script.
-				var inlineWorkerScript = new Blob(
-  						[StringifyFunctionForWorker(threadFunction)],
-  						{type: 'application/javascript'}),
-  					blobURL = window.URL.createObjectURL(inlineWorkerScript),
-            worker = new Worker(blobURL);
+      // cache a copy of the parameters we'll later pass to the external-worker.
+      var argsToSendToThread = Array.prototype.slice.apply(arguments, [0]);
 
-				// Resolve the promise when the worker/thread is finished.
-				worker.addEventListener('message', function ResolvePromise (message) {
-					resolve(message.data);
-					worker.removeEventListener('message', ResolvePromise);
-				});
+      // return a promise so we can free up the main thread.
+      return new Promise(function (resolve, reject) {
 
-				// Detach the Blob to free up memory.
-				worker.addEventListener('message', function DestroyBlob () {
-					window.URL.revokeObjectURL(blobURL);
-					worker.removeEventListener('message', DestroyBlob);
-				});
+        // Resolve the promise when the worker/thread is finished.
+        worker.addEventListener('message', function ResolvePromise (message) {
+          resolve(message.data);
+          worker.removeEventListener('message', ResolvePromise);
+        });
 
-				return worker;
-			})();
+        // Call the external-worker using the parameters.
+        worker.postMessage({args:argsToSendToThread});
+      });
+    };
 
-			// Begin execution of the thread/worker.
-			worker.postMessage(parameterObj);
-		});
+    // Provide a function that destroys the worker.
+    threadedFunction.destroy = function () {
+      window.URL.revokeObjectURL(jsURL);
+      worker.removeEventListener('message');
+      worker.terminate();
+    };
 
-		return promise;
+
+    // Detect if the 'new' keyword was used.
+    if (this.constructor == Threadit) {
+      window.console.log('Threadit: called with new.');
+
+      // Return a function that can be called multiple times.
+      return threadedFunction;
+    }
+    else {
+      window.console.log('Threadit: called as function.');
+
+      // auto-destroy the web worker once it's finished running this once.
+      worker.addEventListener('message', threadedFunction.destroy);
+
+      // copy the arguments this function was called with.
+      var threaditCallArgs = Array.prototype.slice.apply(arguments, [1]);
+
+      return threadedFunction.apply(this, threaditCallArgs);
+    }
+
 	};
 
 	// Private Functions
 	// -----------------
-	function StringifyFunctionForWorker (functionToStringify) {
-		var stringitizedFunk = '\
-			onmessage = function (message) { \
-				postMessage((' + functionToStringify + ')(message.data)); \
-			};';
+  function CreateExternalJavascriptBlob (funk) {
+    var inlineWorkerScript = new Blob(
+      [WorkerizeStringitize(funk)],
+      {type:'application/javascript'});
+
+    return window.URL.createObjectURL(inlineWorkerScript);
+  }
+  // -----------------
+	function WorkerizeStringitize (functionToStringify) {
+		var stringitizedFunk =
+			'onmessage = function (message) { \n'+
+      '  var threadedFunction = ' + functionToStringify + ';\n'+
+      '  postMessage(threadedFunction.apply(null, message.data.args));\n'+
+			'};';
 		return stringitizedFunk;
 	}
 
